@@ -11,7 +11,9 @@ const { getAllScreams, postOneScream, getScream, commentOnScream, likeScream, un
 
 const { getAllEvents, postOneEvent, getEvent, commentOnEvent, goingEvent, ungoingEvent, interestedEvent, uninterestedEvent, getGoingEvents, getNotGoingEvents } = require('./handlers/events')
 
-const  { signup, login, uploadImage, addUserDetails, getAuthenticatedUser } = require('./handlers/users')
+const  { signup, login, uploadImage, addUserDetails, getAuthenticatedUser, handleFriendRequest, getAllFriends, getAllRequests, sendRequest } = require('./handlers/users')
+
+const  { addFishForUser, getFishForUser } = require('./handlers/aquarium')
 
 // Scream Routes
 app.get('/screams', getAllScreams)
@@ -39,5 +41,13 @@ app.post('/login', login)
 app.post('/user/image', FBAuth, uploadImage)
 app.post('/user', FBAuth, addUserDetails)
 app.get('/user', FBAuth, getAuthenticatedUser)
+app.post('/user/handleFriendRequest', FBAuth, handleFriendRequest)
+app.post('/user/sendRequest', FBAuth, sendRequest)
+app.get('/user/getAllFriends', FBAuth, getAllFriends)
+app.get('/user/getAllRequests', FBAuth, getAllRequests)
+
+// Aquarium Routes
+app.post('/aquarium/fish/add', FBAuth, addFishForUser)
+app.get('/aquarium/getAllFishForUser', FBAuth, getFishForUser)
 
 exports.api = functions.https.onRequest(app);

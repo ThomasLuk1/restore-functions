@@ -42,7 +42,9 @@ exports.signup = (req, res) => {
                 email: newUser.email,
                 createdAt: new Date().toISOString(),
                 imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${noImg}?alt=media`,
-                userId: userId
+                userId: userId,
+                friends: [],
+                requests: []
             }
             return db.doc(`/users/${newUser.handle}`).set(userCredentials);
         })
@@ -100,6 +102,83 @@ exports.addUserDetails = (req, res) => {
         })
 };
 
+// Adds a friend for current user
+exports.handleFriendRequest = (req, res) => {
+    let accept = req.body.accept
+    if (accept == true) {
+        db.doc(`/users/${req.user.handle}`).update({
+            friends: admin.firestore.FieldValue.arrayUnion(req.body.friend),
+            requests: admin.firestore.FieldValue.arrayRemove(req.body.friend)
+        })
+        .then(() => {
+            db.doc(`/users/${req.body.friend}`).update({
+                friends: admin.firestore.FieldValue.arrayUnion(req.user.handle),
+            })
+        })
+        .then(() => {
+            return res.json({ message: 'Friend added successfully'});
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({error: err.code})
+        })
+    } else {
+        db.doc(`/users/${req.user.handle}`).update({
+            requests: admin.firestore.FieldValue.arrayRemove(req.body.friend)
+        })
+        .then(() => {
+            return res.json({ message: 'Friend request declined successfully'});
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({error: err.code})
+        })
+    }
+}; 
+
+// Sends a friend request
+exports.sendRequest = (req, res) => {
+    db
+    .doc(`/users/${req.body.userHandle}`)
+    .update({
+        requests: admin.firestore.FieldValue.arrayUnion(req.user.handle)
+    })
+    .then(() => {
+        res.json({ message: "Friend Request sent successfully"});
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ error: 'Something went wrong'})
+    })
+}
+
+// Gets all of the current user's friends
+exports.getAllFriends = (req, res) => {
+    db
+    .doc(`/users/${req.user.handle}`)
+    .get()
+    .then((doc) => {
+        res.json(doc.data().friends);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ error: 'Something went wrong'})
+    })
+}
+
+// Gets all of the current user's friend requests
+exports.getAllRequests = (req, res) => {
+    db
+    .doc(`/users/${req.user.handle}`)
+    .get()
+    .then((doc) => {
+        res.json(doc.data().requests);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ error: 'Something went wrong'})
+    })
+}
 
 //Get own user details
 exports.getAuthenticatedUser = (req, res) => {
