@@ -9,8 +9,15 @@ exports.getFishForUser = (req, res) => {
         .then((docs) => {
             fishes = []
             docs.forEach((doc) => {
-                fishName = doc.data().type
-                fishes.push(getFishURL(fishName));
+                let fishName = doc.data().type
+                let leftFish = getFishURL(`${fishName}_left`)
+                let rightFish = getFishURL(`${fishName}_right`)
+                let fishObject = {
+                    fishName: fishName,
+                    leftFish: leftFish,
+                    rightFish: rightFish
+                }
+                fishes.push(fishObject);
               });
             res.json(fishes);
         })
