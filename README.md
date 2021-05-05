@@ -56,6 +56,7 @@ The frontend is written in javascript using React.js. For certain pages, additio
 **Backend:**
 
 [https://github.com/ThomasLuk1/restore-functions](https://github.com/ThomasLuk1/restore-functions)
+[API Documentation](https://docs.google.com/document/d/10ZF4BST6sXbnYbYKoDWg8b1wdk5Ui5AaLQpkGEkenKg/edit#heading=h.u80sqb4mqh5v)
 
 APIs are written using Firebase Functions and Express.js. Full Documentation of all APIs are listed on the backend repository.
 
