@@ -1,5 +1,95 @@
 const { db } = require('../util/admin')
 
+// gets the most popular events
+exports.getPopularEvents = (req, res) => { 
+    db
+    .collection('goings')
+    .where('userHandle', '==', req.user.handle)
+    .get()
+    .then(data => {
+        let goings = [];
+        data.forEach(doc => {
+            goings.push(doc.data().eventId)
+        })
+        return goings;
+    })
+    .then(goingEventIds => {
+        db
+        .collection('events')
+        .orderBy('goingCount', 'desc')
+        .get()
+        .then(events => {
+            result = []
+            goingSet = new Set(goingEventIds)
+            console.log(goingEventIds)
+            events.forEach(doc => {
+                if (!goingSet.has(doc.id)) {
+                    result.push(doc.data())
+                }
+            })
+            return res.json(result)
+        })
+    })
+    .catch(err => {
+        console.log(err)
+        res.status(500).json({ error: err.code})
+    })
+}
+
+// get all events that friends are going to 
+exports.getFriendEvents = (req, res) => { 
+    db
+    .collection('goings')
+    .where('userHandle', '==', req.user.handle)
+    .get()
+    .then(data => {
+        let goings = [];
+        data.forEach(doc => {
+            goings.push(doc.data().eventId)
+        })
+        return goings;
+    })
+    .then(goingEventIds => {
+        db
+        .collection('events')
+        .get()
+        .then(events => {
+            let friends = req.user.friends
+            let result = []
+            goingSet = new Set(goingEventIds)
+            events.forEach(doc => {
+                let eventData = doc.data()
+                let attendees = new Set(eventData.attendees)
+                let numFriendsGoing = 0
+                friends.forEach(friend => {
+                    if (attendees.has(friend)) {
+                        numFriendsGoing += 1
+                    }   
+                })
+                eventData.numFriendsGoing = numFriendsGoing
+                if (!goingSet.has(doc.id)) {
+                    result.push(eventData)
+                }
+            })
+            function compare( a, b ) {
+                if ( a.numFriendsGoing < b.numFriendsGoing){
+                  return -1;
+                }
+                if ( a.numFriendsGoing> b.numFriendsGoing ){
+                  return 1;
+                }
+                return 0;
+              }
+            result.sort(compare)
+            return res.json(result)
+        })
+    })
+    .catch(err => {
+        console.log(err)
+        res.status(500).json({ error: err.code})
+    })
+}
+
 // fetch all events
 exports.getAllEvents = (req, res) => {
     db
@@ -27,7 +117,8 @@ exports.getAllEvents = (req, res) => {
                 createdAt: doc.data().createdAt,
                 commentCount: doc.data().commentCount,
                 goingCount: doc.data().goingCount,
-                interestedCount: doc.data().interestedCount
+                interestedCount: doc.data().interestedCount,
+                attendees: doc.data().attendees
             })
         })
         return res.json(events);
@@ -62,6 +153,7 @@ exports.postOneEvent = (req, res) => {
         goingCount: 0,
         commentCount: 0,
         interestedCount: 0,
+        attendees: []
     }
 
    db
@@ -145,9 +237,7 @@ exports.goingEvent = (req, res) => {
     const goingDocument = db.collection('goings').where('userHandle', '==', req.user.handle)
         .where('eventId', '==', req.params.eventId).limit(1);
     const eventDocument = db.doc(`/events/${req.params.eventId}`);
-
     let eventData;
-    
     eventDocument.get()
     .then(doc => {
         if(doc.exists) {
@@ -166,7 +256,8 @@ exports.goingEvent = (req, res) => {
             })
             .then(() => {
                 eventData.goingCount++
-                return eventDocument.update({ goingCount: eventData.goingCount})
+                eventData.attendees.push(req.user.userHandle)
+                return eventDocument.update({ goingCount: eventData.goingCount, attendees: eventData.attendees})
             })
             .then(() => {
                 return res.json(eventData);
@@ -206,7 +297,8 @@ exports.ungoingEvent = (req, res) => {
             return db.doc(`/goings/${data.docs[0].id}`).delete()
             .then(() => {
                 eventData.goingCount--;
-                return eventDocument.update({ goingCount: eventData.goingCount})
+                eventData.attendees.splice(eventData.indexOf(req.user.userHandle), 1)
+                return eventDocument.update({ goingCount: eventData.goingCount, attendees: eventData.attendees})
             })
             .then(() => {
                 res.json(eventData);

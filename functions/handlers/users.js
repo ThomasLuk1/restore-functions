@@ -44,7 +44,8 @@ exports.signup = (req, res) => {
                 imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${noImg}?alt=media`,
                 userId: userId,
                 friends: [],
-                requests: []
+                requests: [],
+                isDarkMode: true
             }
             return db.doc(`/users/${newUser.handle}`).set(userCredentials);
         })
@@ -95,6 +96,20 @@ exports.addUserDetails = (req, res) => {
     db.doc(`/users/${req.user.handle}`).update(userDetails)
         .then(() => {
             return res.json({ message: 'Details added successfully'});
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({error: err.code})
+        })
+};
+
+// Change background color theme
+exports.changeBackgroundTheme = (req, res) => {
+    let isDarkMode = req.body.isDarkMode;
+
+    db.doc(`/users/${req.user.handle}`).update({isDarkMode: isDarkMode})
+        .then(() => {
+            return res.json({ message: 'Background color theme changed'});
         })
         .catch(err => {
             console.error(err);

@@ -9,9 +9,9 @@ const FBAuth = require('./util/fbAuth')
 
 const { getAllScreams, postOneScream, getScream, commentOnScream, likeScream, unlikeScream } = require('./handlers/screams')
 
-const { getAllEvents, postOneEvent, getEvent, commentOnEvent, goingEvent, ungoingEvent, interestedEvent, uninterestedEvent, getGoingEvents, getNotGoingEvents } = require('./handlers/events')
+const { getAllEvents, postOneEvent, getEvent, commentOnEvent, goingEvent, ungoingEvent, interestedEvent, uninterestedEvent, getGoingEvents, getNotGoingEvents, getPopularEvents, getFriendEvents } = require('./handlers/events')
 
-const  { signup, login, uploadImage, addUserDetails, getAuthenticatedUser, handleFriendRequest, getAllFriends, getAllRequests, sendRequest } = require('./handlers/users')
+const  { signup, login, uploadImage, addUserDetails, getAuthenticatedUser, handleFriendRequest, getAllFriends, getAllRequests, sendRequest, changeBackgroundTheme } = require('./handlers/users')
 
 const  { addFishForUser, getFishForUser } = require('./handlers/aquarium')
 
@@ -34,6 +34,8 @@ app.post('/event/:eventId/uninterested', FBAuth, uninterestedEvent)
 app.post('/event/:eventId/comment', FBAuth, commentOnEvent)
 app.get('/events/going', FBAuth, getGoingEvents)
 app.get('/events/notgoing', FBAuth, getNotGoingEvents)
+app.get('/events/getPopularEvents', FBAuth, getPopularEvents)
+app.get('/events/getFriendEvents', FBAuth, getFriendEvents)
 
 // Users Routes
 app.post('/signup', signup)
@@ -45,6 +47,7 @@ app.post('/user/handleFriendRequest', FBAuth, handleFriendRequest)
 app.post('/user/sendRequest', FBAuth, sendRequest)
 app.get('/user/getAllFriends', FBAuth, getAllFriends)
 app.get('/user/getAllRequests', FBAuth, getAllRequests)
+app.post('/user/changeBackgroundTheme', FBAuth, changeBackgroundTheme)
 
 // Aquarium Routes
 app.post('/aquarium/fish/add', FBAuth, addFishForUser)
